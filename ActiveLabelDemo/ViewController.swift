@@ -42,6 +42,7 @@ class ViewController: UIViewController {
             label.handleMentionTap { self.alert("Mention", message: $0) }
             label.handleHashtagTap { self.alert("Hashtag", message: $0) }
             label.handleURLTap { self.alert("URL", message: $0.absoluteString) }
+            label.handleNothingTap { self.alert("Nothing", message: "other text tapped...") }
 
             //Custom types
 

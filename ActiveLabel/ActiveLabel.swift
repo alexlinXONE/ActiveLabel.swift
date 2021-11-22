@@ -11,6 +11,7 @@ import UIKit
 
 public protocol ActiveLabelDelegate: class {
     func didSelect(_ text: String, type: ActiveType)
+    func didSelectActiveLabelWithNothing()
 }
 
 public typealias ConfigureLinkAttribute = (ActiveType, [NSAttributedString.Key : Any], Bool) -> ([NSAttributedString.Key : Any])
@@ -89,6 +90,10 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     
     open func handleEmailTap(_ handler: @escaping (String) -> ()) {
         emailTapHandler = handler
+    }
+
+    open func handleNothingTap(_ handler: @escaping () -> ()) {
+        nothingTapHandler = handler
     }
     
     open func removeHandle(for type: ActiveType) {
@@ -215,7 +220,10 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
                 selectedElement = nil
             }
         case .ended, .regionExited:
-            guard let selectedElement = selectedElement else { return avoidSuperCall }
+            guard let selectedElement = selectedElement else {
+                didTapNothing()
+                return avoidSuperCall
+            }
             
             switch selectedElement.element {
             case .mention(let userHandle): didTapMention(userHandle)
@@ -251,6 +259,7 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     internal var hashtagTapHandler: ((String) -> ())?
     internal var urlTapHandler: ((URL) -> ())?
     internal var emailTapHandler: ((String) -> ())?
+    internal var nothingTapHandler: (() -> Void)?
     internal var customTapHandlers: [ActiveType : ((String) -> ())] = [:]
     
     fileprivate var mentionFilterPredicate: ((String) -> Bool)?
@@ -531,6 +540,14 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             return
         }
         elementHandler(element)
+    }
+
+    fileprivate func didTapNothing() {
+        guard let nothingTapHandler = nothingTapHandler else {
+            delegate?.didSelectActiveLabelWithNothing()
+            return
+        }
+        nothingTapHandler()
     }
 }
 
